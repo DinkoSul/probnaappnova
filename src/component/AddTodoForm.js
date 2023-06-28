@@ -26,7 +26,7 @@ class AddTodoForm extends Component {
       return;
     }
 
-    handle(newItem);
+    addTodo(newItem);
 
     this.setState({ newItem: "" });
 
