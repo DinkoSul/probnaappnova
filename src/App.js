@@ -1,20 +1,19 @@
-import React, { Component } from "react";
-import "./App.css";
+import React, { useEffect, useState } from "react";
+import { VisibilityToolbar, AddTodoForm, TodoList } from "./component";
 import { VISIBILITY_TYPES } from "./const";
-import { AddTodoForm, VisibilityToolbar, TodoList } from "./component";
+import "./App.css";
 
-class App extends Component {
-  state = {
-    todos: JSON.parse(localStorage.getItem("todos")) || [],
-    visibility: VISIBILITY_TYPES.ALL,
-  };
+const App = () => {
+  const [todos, setTodos] = useState(
+    JSON.parse(localStorage.getItem("todos")) || []
+  );
+  const [visibility, setVisibility] = useState(VISIBILITY_TYPES.ALL);
 
-  componentDidUpdate() {
-    localStorage.setItem("todos", JSON.stringify(this.state.todos));
-  }
+  useEffect(() => {
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos]);
 
-  getVisibleTodos = () => {
-    const { todos, visibility } = this.state;
+  const getVisibleTodos = () => {
     if (visibility === VISIBILITY_TYPES.ALL) {
       return todos;
     }
@@ -26,66 +25,60 @@ class App extends Component {
     return todos.filter((todo) => !todo.completed);
   };
 
-  handleAddTodo = (value) => {
-    const { todos } = this.state;
+  const handleAddTodo = (value) => {
     const newTodo = { id: crypto.randomUUID(), text: value, completed: false };
+    setTodos((prevTodos) => [...prevTodos, newTodo]);
+  };
 
-    this.setState({
-      todos: [...todos, newTodo],
+  const handleToggleTodo = (id) => {
+    setTodos((prevTodos) => {
+      const updatedTodos = prevTodos.map((todo) => {
+        if (todo.id === id) {
+          return { ...todo, completed: !todo.completed };
+        }
+        return todo;
+      });
+      return updatedTodos;
     });
   };
-  handleToggleTodo = (id) => {
-    const { todos } = this.state;
-    const todo = todos.find((item) => item.id === id);
 
-    todo.completed = !todo.completed;
-    this.setState({ todos });
+  const handleRemoveTodo = (id) => {
+    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
   };
 
-  handleRemoveTodo = (id) => {
-    const { todos } = this.state;
-    const newTodos = todos.filter((todo) => todo.id !== id);
-    this.setState({ todos: newTodos });
-  };
-  handleRemoveCompleted = () => {
-    const { todos } = this.state;
-    const newTodos = todos.filter((todo) => !todo.completed);
-    this.setState({ todos: newTodos });
+  const handleRemoveCompleted = () => {
+    setTodos((prevTodos) => prevTodos.filter((todo) => !todo.completed));
   };
 
-  handleVisibilityChange = (visibility) => {
-    this.setState({ visibility });
+  const handleVisibilityChange = (visibility) => {
+    setVisibility(visibility);
   };
 
-  render() {
-    const { visibility, todos } = this.state;
-    const visibleTodos = this.getVisibleTodos();
+  const visibleTodos = getVisibleTodos();
+  const hasCompletedTodos = todos.filter((todo) => !!todo.completed).length > 0;
 
-    const hasCompletedTodos =
-      todos.filter((todo) => !!todo.completed).length > 0;
-    return (
-      <div className="app">
-        <h1 className="header">My tasks</h1>
-        <VisibilityToolbar
-          visibilityType={visibility}
-          onVisibilityChange={this.handleVisibilityChange}
+  return (
+    <div className="app">
+      <h1 className="header">My tasks</h1>
+      <VisibilityToolbar
+        visibilityType={visibility}
+        onVisibilityChange={handleVisibilityChange}
+      />
+      <div className="todo-container">
+        <AddTodoForm addTodo={handleAddTodo} />
+        <TodoList
+          todos={visibleTodos}
+          removeTodo={handleRemoveTodo}
+          toggleTodo={handleToggleTodo}
         />
-        <div className="todo-container">
-          <AddTodoForm addTodo={this.handleAddTodo} />
-          <TodoList
-            todos={visibleTodos}
-            removeTodo={this.handleRemoveTodo}
-            toggleTodo={this.handleToggleTodo}
-          />
-        </div>
-        {hasCompletedTodos && (
-          <span onClick={this.handleRemoveCompleted} className="btn-clear-all">
-            Clear completed
-          </span>
-        )}
       </div>
-    );
-  }
-}
+      {hasCompletedTodos && (
+        <span onClick={handleRemoveCompleted} className="btn-clear-all">
+          Clear completed
+        </span>
+      )}
+    </div>
+  );
+};
 
 export default App;

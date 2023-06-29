@@ -1,66 +1,60 @@
-import React, { Component } from "react";
+import React, { useState, useRef } from "react";
+import PropTypes from "prop-types";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import FormControl from "react-bootstrap/FormControl";
 import InputGroup from "react-bootstrap/InputGroup";
 
-class AddTodoForm extends Component {
-  state = {
-    newItem: "",
+const AddTodoForm = ({ addTodo }) => {
+  const [newItem, setNewItem] = useState("");
+  const inputRef = useRef(null);
+
+  const handleChange = (event) => {
+    const newItemValue = event.target.value;
+    setNewItem(newItemValue);
   };
 
-  ref = React.createRef();
-
-  handleChange = (event) => {
-    const newItem = event.target.value;
-    this.setState({ newItem });
-  };
-
-  handleAddTodoClick = (event) => {
+  const handleAddTodoClick = (event) => {
     event.preventDefault();
-
-    const { newItem } = this.state;
-    const { addTodo } = this.props;
 
     if (!newItem || !newItem.trim()) {
       return;
     }
 
     addTodo(newItem);
+    setNewItem("");
 
-    this.setState({ newItem: "" });
-
-    if (this.ref.current) {
-      this.ref.current.focus();
+    if (inputRef.current) {
+      inputRef.current.focus();
     }
   };
 
-  render() {
-    const { newItem } = this.state;
-
-    return (
-      <Form>
-        <InputGroup size="lg">
-          <FormControl
-            placeholder="Add todo"
-            onChange={this.handleChange}
-            value={newItem}
-            autoFocus
-            ref={this.ref}
-          />
-          <InputGroup>
-            <Button
-              variant="outline-secondary"
-              onClick={this.handleAddTodoClick}
-              type="submit"
-            >
-              Add
-            </Button>
-          </InputGroup>
+  return (
+    <Form>
+      <InputGroup size="lg">
+        <FormControl
+          placeholder="Add todo"
+          onChange={handleChange}
+          value={newItem}
+          autoFocus
+          ref={inputRef}
+        />
+        <InputGroup>
+          <Button
+            variant="outline-secondary"
+            onClick={handleAddTodoClick}
+            type="submit"
+          >
+            Add
+          </Button>
         </InputGroup>
-      </Form>
-    );
-  }
-}
+      </InputGroup>
+    </Form>
+  );
+};
+
+AddTodoForm.propTypes = {
+  addTodo: PropTypes.func,
+};
 
 export default AddTodoForm;
